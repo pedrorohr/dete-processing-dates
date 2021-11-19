@@ -1,0 +1,39 @@
+name: DETE Processing Dates
+
+on: push
+
+env:
+  GO_PROJECT_DIR: src/scraper
+  GO_PROJECT_EXEC_DIR: ../../bin/scraper
+
+jobs:
+  unit-test:
+    name: Run unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+      - name: Run Golang project unit tests
+        run: |
+          cd ${{ env.GO_PROJECT_DIR }}
+          go test -v ./...
+
+  build-and-plan:
+    name: Build executable file and plan infrastructure changes
+    runs-on: ubuntu-latest
+    needs: unit-test
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+      - name: Build Golang project executable file
+        run: |
+          cd ${{ env.GO_PROJECT_DIR }}
+          env GOOS=linux GOARCH=amd64 go build -o ${{ env.GO_PROJECT_EXEC_DIR }}
