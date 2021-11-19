@@ -3,5 +3,5 @@ package handler
 func Create() Handler {
 	config := NewConfigFromEnv()
 
-	return NewLambdaHandler(config.deteUrl)
+	return NewLambdaHandler(config.deteProcessingDatesUrl)
 }

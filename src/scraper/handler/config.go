@@ -5,13 +5,13 @@ import (
 )
 
 type config struct {
-	deteUrl string
+	deteProcessingDatesUrl string
 }
 
 // NewConfigFromEnv -
 func NewConfigFromEnv() *config {
 
 	return &config{
-		deteUrl: os.Getenv("DETE_URL"),
+		deteProcessingDatesUrl: os.Getenv("DETE_PROCESSING_DATES_URL"),
 	}
 }
