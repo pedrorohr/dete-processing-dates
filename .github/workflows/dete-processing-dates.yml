@@ -5,6 +5,7 @@ on: push
 env:
   GO_PROJECT_DIR: src/scraper
   GO_PROJECT_EXEC_DIR: ../../bin/scraper
+  INFRASTRUCTURE_DIR: infrastructure
 
 jobs:
   unit-test:
@@ -37,3 +38,15 @@ jobs:
         run: |
           cd ${{ env.GO_PROJECT_DIR }}
           env GOOS=linux GOARCH=amd64 go build -o ${{ env.GO_PROJECT_EXEC_DIR }}
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.0.0
+      - name: Init infrastructure
+        run: |
+          cd ${{ env.INFRASTRUCTURE_DIR }}
+          terraform init
+      - name: Plan infrastructure changes
+        run: |
+          cd ${{ env.INFRASTRUCTURE_DIR }}
+          terraform plan -no-color
