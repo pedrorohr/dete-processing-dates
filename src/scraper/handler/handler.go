@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/aws/aws-sdk-go/service/dynamodb/expression"
 	"github.com/gocolly/colly"
 )
 
@@ -95,17 +94,8 @@ func (l lambdaHandler) saveNewProcessingDate(date deteProcessingDate) {
 }
 
 func loadDeteProcessingDates(db *dynamodb.DynamoDB) deteProcessingDates {
-	expr, err := expression.NewBuilder().Build()
-	if err != nil {
-		log.Fatalf("Got error building expression: %s", err)
-	}
-
 	params := &dynamodb.ScanInput{
-		ExpressionAttributeNames:  expr.Names(),
-		ExpressionAttributeValues: expr.Values(),
-		FilterExpression:          expr.Filter(),
-		ProjectionExpression:      expr.Projection(),
-		TableName:                 aws.String(tableName),
+		TableName: aws.String(tableName),
 	}
 
 	result, err := db.Scan(params)
