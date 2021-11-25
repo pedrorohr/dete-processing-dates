@@ -28,11 +28,25 @@ data "archive_file" "scraper_zip" {
 }
 
 locals {
-  account_id     = data.aws_caller_identity.current.account_id
-  dete_processing_dates_url       = "https://enterprise.gov.ie/en/What-We-Do/Workplace-and-Skills/Employment-Permits/Current-Application-Processing-Dates/"
-  lambda_handler = "scraper"
-  name           = "dete-processing-dates"
-  region         = "us-east-1"
+  account_id                = data.aws_caller_identity.current.account_id
+  dete_processing_dates_url = "https://enterprise.gov.ie/en/What-We-Do/Workplace-and-Skills/Employment-Permits/Current-Application-Processing-Dates/"
+  lambda_handler            = "scraper"
+  name                      = "dete-processing-dates"
+  region                    = "us-east-1"
+}
+
+resource "aws_dynamodb_table" "dete-processing-dates" {
+  name             = "DeteProcessingDates"
+  read_capacity    = 2
+  write_capacity   = 2
+  hash_key         = "Type"
+  stream_enabled   = true
+  stream_view_type = "NEW_AND_OLD_IMAGES"
+
+  attribute {
+      name = "Type"
+      type = "S"
+  }
 }
 
 data "aws_iam_policy_document" "assume_role" {
@@ -73,9 +87,38 @@ resource "aws_iam_policy" "logs" {
 }
 
 resource "aws_iam_role_policy_attachment" "logs" {
-  depends_on = [aws_iam_role.lambda, aws_iam_policy.logs]
   role       = aws_iam_role.lambda.name
   policy_arn = aws_iam_policy.logs.arn
+}
+
+data "aws_iam_policy_document" "dynamo" {
+  policy_id = "${local.name}-lambda-dynamo"
+  version   = "2012-10-17"
+  statement {
+    effect  = "Allow"
+    actions = [
+      "dynamodb:BatchGetItem",
+      "dynamodb:GetItem",
+      "dynamodb:Query",
+      "dynamodb:Scan",
+      "dynamodb:BatchWriteItem",
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem"
+    ]
+
+    resources = [aws_dynamodb_table.dete-processing-dates.arn]
+  }
+}
+
+resource "aws_iam_policy" "dynamo" {
+  name   = "${local.name}-lambda-dynamo"
+  policy = data.aws_iam_policy_document.dynamo.json
+}
+
+resource "aws_iam_role_policy_attachment" "dynamo" {
+  depends_on = [aws_iam_role.lambda, aws_iam_policy.dynamo]
+  role       = aws_iam_role.lambda.name
+  policy_arn = aws_iam_policy.dynamo.arn
 }
 
 resource "aws_cloudwatch_log_group" "log" {
@@ -107,15 +150,15 @@ resource "aws_cloudwatch_event_rule" "every_five_minutes" {
 }
 
 resource "aws_cloudwatch_event_target" "scrap_every_five_minutes" {
-    rule = "${aws_cloudwatch_event_rule.every_five_minutes.name}"
+    rule = aws_cloudwatch_event_rule.every_five_minutes.name
     target_id = "scraper"
-    arn = "${aws_lambda_function.scraper.arn}"
+    arn = aws_lambda_function.scraper.arn
 }
 
 resource "aws_lambda_permission" "allow_cloudwatch_to_call_scraper" {
     statement_id = "AllowExecutionFromCloudWatch"
     action = "lambda:InvokeFunction"
-    function_name = "${aws_lambda_function.scraper.function_name}"
+    function_name = aws_lambda_function.scraper.function_name
     principal = "events.amazonaws.com"
-    source_arn = "${aws_cloudwatch_event_rule.every_five_minutes.arn}"
+    source_arn = aws_cloudwatch_event_rule.every_five_minutes.arn
 }
