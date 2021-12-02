@@ -3,8 +3,10 @@ name: DETE Processing Dates
 on: push
 
 env:
-  GO_PROJECT_DIR: src/scraper
-  GO_PROJECT_EXEC_DIR: ../../bin/scraper
+  GO_SCRAPER_PROJECT_DIR: src/scraper
+  GO_SCRAPER_PROJECT_EXEC_DIR: ../../bin/scraper
+  GO_NOTIFIER_PROJECT_DIR: src/notifier
+  GO_NOTIFIER_PROJECT_EXEC_DIR: ../../bin/notifier
   INFRASTRUCTURE_DIR: infrastructure
 
 jobs:
@@ -18,9 +20,13 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.17
-      - name: Run Golang project unit tests
+      - name: Run Golang Scraper project unit tests
         run: |
-          cd ${{ env.GO_PROJECT_DIR }}
+          cd ${{ env.GO_SCRAPER_PROJECT_DIR }}
+          go test -v ./...
+      - name: Run Golang Notifier project unit tests
+        run: |
+          cd ${{ env.GO_NOTIFIER_PROJECT_DIR }}
           go test -v ./...
 
   build-and-plan:
@@ -34,10 +40,14 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.17
-      - name: Build Golang project executable file
+      - name: Build Golang scraper project executable file
         run: |
-          cd ${{ env.GO_PROJECT_DIR }}
-          env GOOS=linux GOARCH=amd64 go build -o ${{ env.GO_PROJECT_EXEC_DIR }}
+          cd ${{ env.GO_SCRAPER_PROJECT_DIR }}
+          env GOOS=linux GOARCH=amd64 go build -o ${{ env.GO_SCRAPER_PROJECT_EXEC_DIR }}
+      - name: Build Golang notifier project executable file
+        run: |
+          cd ${{ env.GO_NOTIFIER_PROJECT_DIR }}
+          env GOOS=linux GOARCH=amd64 go build -o ${{ env.GO_NOTIFIER_PROJECT_EXEC_DIR }}
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -69,10 +79,14 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.17
-      - name: Build Golang project executable file
+      - name: Build Golang scraper project executable file
         run: |
-          cd ${{ env.GO_PROJECT_DIR }}
-          env GOOS=linux GOARCH=amd64 go build -o ${{ env.GO_PROJECT_EXEC_DIR }}
+          cd ${{ env.GO_SCRAPER_PROJECT_DIR }}
+          env GOOS=linux GOARCH=amd64 go build -o ${{ env.GO_SCRAPER_PROJECT_EXEC_DIR }}
+      - name: Build Golang notifier project executable file
+        run: |
+          cd ${{ env.GO_NOTIFIER_PROJECT_DIR }}
+          env GOOS=linux GOARCH=amd64 go build -o ${{ env.GO_NOTIFIER_PROJECT_EXEC_DIR }}
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
