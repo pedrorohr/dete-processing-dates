@@ -212,7 +212,7 @@ data "aws_iam_policy_document" "notifier-dynamo" {
       "dynamodb:ListStreams"
     ]
 
-    resources = [aws_dynamodb_table.dete-processing-dates.arn]
+    resources = [aws_dynamodb_table.dete-processing-dates.stream_arn]
   }
 }
 
