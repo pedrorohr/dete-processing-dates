@@ -63,9 +63,13 @@ func NewLambdaHandler(deteProcessingDatesUrl string, db *dynamodb.DynamoDB) *lam
 
 func (l lambdaHandler) evaluateProcessingDate(e *colly.HTMLElement, dateType string) {
 	extractedDate := extractProcessingDate(e.Text)
-	log.Printf("\n%s: %s", dateType, extractedDate)
+	log.Printf("Extracted date - %s: %s\n", dateType, extractedDate)
 
 	actualDate, ok := l.dates[dateType]
+	if ok {
+		log.Printf("Actual date - %s: %s\n", dateType, actualDate)
+	}
+
 	if !ok || extractedDate.After(actualDate) {
 		newActualDate := deteProcessingDate{
 			Type: dateType,

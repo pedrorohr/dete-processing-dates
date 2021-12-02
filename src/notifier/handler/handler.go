@@ -20,11 +20,11 @@ func (l lambdaHandler) Run(e events.DynamoDBEvent) {
 
 		oldDateType := record.Change.OldImage["Type"].String()
 		oldDate := record.Change.OldImage["Date"].String()
-		log.Printf("Old - Type: %s Date: %s\n", oldDateType, oldDate)
+		log.Printf("Old - %s: %s\n", oldDateType, oldDate)
 
 		newDateType := record.Change.NewImage["Type"].String()
 		newDate := record.Change.NewImage["Date"].String()
-		log.Printf("New - Type: %s Date: %s\n", newDateType, newDate)
+		log.Printf("New - %s: %s\n", newDateType, newDate)
 	}
 }
 
