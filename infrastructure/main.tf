@@ -29,9 +29,6 @@ data "archive_file" "scraper_zip" {
 
 locals {
   account_id                = data.aws_caller_identity.current.account_id
-  dete_processing_dates_url = "https://enterprise.gov.ie/en/What-We-Do/Workplace-and-Skills/Employment-Permits/Current-Application-Processing-Dates/"
-  dete_bot_api_token        = "12345"
-  dete_chat_id              = "1234"
   scraper_lambda_handler    = "scraper"
   notifier_lambda_handler   = "notifier"
   scraper_name              = "dete-processing-dates-scraper"
@@ -141,7 +138,7 @@ resource "aws_lambda_function" "scraper" {
 
   environment {
     variables = {
-      DETE_PROCESSING_DATES_URL = local.dete_processing_dates_url
+      DETE_PROCESSING_DATES_URL = var.dete_processing_dates_url
     }
   }
 }
@@ -243,8 +240,8 @@ resource "aws_lambda_function" "notifier" {
 
   environment {
     variables = {
-      DETE_BOT_API_TOKEN = local.dete_bot_api_token,
-      DETE_CHAT_ID       = local.dete_chat_id
+      DETE_BOT_API_TOKEN = var.dete_bot_api_token,
+      DETE_CHAT_ID       = var.dete_chat_id
     }
   }
 }
