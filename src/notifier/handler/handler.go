@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	parseMode           = "MarkdownV2"
 	baseURL             = "https://api.telegram.org/bot"
 	sendMessageEndpoint = "sendMessage"
 	applicationType     = "application/json"
@@ -31,8 +32,9 @@ type lambdaHandler struct {
 }
 
 type sendMessageReqBody struct {
-	ChatId int64  `json:"chat_id"`
-	Text   string `json:"text"`
+	ChatId    int64  `json:"chat_id"`
+	Text      string `json:"text"`
+	ParseMode string `json:"parse_mode"`
 }
 
 func (l lambdaHandler) Run(e events.DynamoDBEvent) {
@@ -60,8 +62,9 @@ func NewLambdaHandler(deteBotApiToken string, deteChatId int64) *lambdaHandler {
 
 func (l lambdaHandler) sendTelegramMessage(text string) {
 	reqBody := &sendMessageReqBody{
-		ChatId: l.deteChatId,
-		Text:   text,
+		ChatId:    l.deteChatId,
+		Text:      text,
+		ParseMode: parseMode,
 	}
 	reqBytes, err := json.Marshal(reqBody)
 	if err != nil {
