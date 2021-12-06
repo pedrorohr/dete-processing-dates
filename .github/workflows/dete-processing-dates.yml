@@ -63,6 +63,10 @@ jobs:
           cd ${{ env.INFRASTRUCTURE_DIR }}
           terraform init
       - name: Plan infrastructure changes
+        env:
+          TF_VAR_dete_processing_dates_url: ${{ secrets.DETE_PROCESSING_DATES_URL }}
+          TF_VAR_dete_bot_api_token: ${{ secrets.DETE_BOT_API_TOKEN }}
+          TF_VAR_dete_chat_id: ${{ secrets.DETE_CHAT_ID }}
         run: |
           cd ${{ env.INFRASTRUCTURE_DIR }}
           terraform plan -no-color
@@ -102,7 +106,10 @@ jobs:
           cd ${{ env.INFRASTRUCTURE_DIR }}
           terraform init
       - name: Apply infrastructure changes
+        env:
+          TF_VAR_dete_processing_dates_url: ${{ secrets.DETE_PROCESSING_DATES_URL }}
+          TF_VAR_dete_bot_api_token: ${{ secrets.DETE_BOT_API_TOKEN }}
+          TF_VAR_dete_chat_id: ${{ secrets.DETE_CHAT_ID }}
         run: |
           cd ${{ env.INFRASTRUCTURE_DIR }}
           terraform apply -auto-approve
-
