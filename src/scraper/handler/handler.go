@@ -27,7 +27,6 @@ type Handler interface {
 type lambdaHandler struct {
 	deteProcessingDatesUrl string
 	db                     *dynamodb.DynamoDB
-	dates                  deteProcessingDates
 }
 
 type deteProcessingDate struct {
@@ -38,38 +37,33 @@ type deteProcessingDate struct {
 type deteProcessingDates map[string]time.Time
 
 func (l lambdaHandler) Run() {
+	dates := loadDeteProcessingDates(l.db)
 
 	c := colly.NewCollector()
 
 	c.OnHTML(trustedPartnerDateSelector, func(e *colly.HTMLElement) {
-		l.evaluateProcessingDate(e, trusted)
+		l.evaluateProcessingDate(e, trusted, dates)
 	})
 
 	c.OnHTML(standardDateSelector, func(e *colly.HTMLElement) {
-		l.evaluateProcessingDate(e, standard)
+		l.evaluateProcessingDate(e, standard, dates)
 	})
 
 	c.Visit(l.deteProcessingDatesUrl)
 }
 
 func NewLambdaHandler(deteProcessingDatesUrl string, db *dynamodb.DynamoDB) *lambdaHandler {
-	dates := loadDeteProcessingDates(db)
 	return &lambdaHandler{
 		deteProcessingDatesUrl: deteProcessingDatesUrl,
 		db:                     db,
-		dates:                  dates,
 	}
 }
 
-func (l lambdaHandler) evaluateProcessingDate(e *colly.HTMLElement, dateType string) {
+func (l lambdaHandler) evaluateProcessingDate(e *colly.HTMLElement, dateType string, dates deteProcessingDates) {
 	extractedDate := extractProcessingDate(e.Text)
 	log.Printf("Extracted date - %s: %s\n", dateType, extractedDate)
 
-	actualDate, ok := l.dates[dateType]
-	if ok {
-		log.Printf("Actual date - %s: %s\n", dateType, actualDate)
-	}
-
+	actualDate, ok := dates[dateType]
 	if !ok || extractedDate.After(actualDate) {
 		newActualDate := deteProcessingDate{
 			Type: dateType,
@@ -115,6 +109,7 @@ func loadDeteProcessingDates(db *dynamodb.DynamoDB) deteProcessingDates {
 			log.Fatalf("Got error unmarshalling: %s", err)
 		}
 
+		log.Printf("Actual date - %s: %s\n", item.Type, item.Date)
 		deteProcessingDates[item.Type] = item.Date
 	}
 
