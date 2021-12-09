@@ -1,3 +1,9 @@
+variable "environment" {
+  type        = string 
+  description = "Defines the environment to be used on resource tags"
+  default     = "Development"
+}
+
 variable "dete_processing_dates_url" {
   type        = string 
   description = "URL where DETE processing dates can be found"

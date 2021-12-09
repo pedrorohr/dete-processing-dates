@@ -17,6 +17,19 @@ terraform {
 
 provider "aws" {
   region = "us-east-1"
+  
+  default_tags {
+    tags = {
+      Environment = var.environment
+      Team        = "Me, Myself & I"
+      Service     = "dete-processing-dates"
+    }
+  }
+}
+
+locals {
+  scraper_service_name = "dete-processing-dates-scraper"
+  notifier_service_name = "dete-processing-dates-notifier"
 }
 
 resource "aws_dynamodb_table" "dete_processing_dates" {
@@ -28,8 +41,8 @@ resource "aws_dynamodb_table" "dete_processing_dates" {
   stream_view_type = "NEW_AND_OLD_IMAGES"
 
   attribute {
-      name = "Type"
-      type = "S"
+    name = "Type"
+    type = "S"
   }
 }
 
@@ -68,7 +81,7 @@ data "aws_iam_policy_document" "dynamo_stream" {
 
 module "scraper"{
   source         = "./modules/lambda"
-  name           = "dete-processing-dates-scraper"
+  name           = local.scraper_service_name
   handler        = "scraper"
   source_file    = "../bin/scraper"
   extra_policies = {
@@ -81,7 +94,7 @@ module "scraper"{
 
 module "notifier"{
   source         = "./modules/lambda"
-  name           = "dete-processing-dates-notifier"
+  name           = local.notifier_service_name
   handler        = "notifier"
   source_file    = "../bin/notifier"
   extra_policies = {
@@ -94,23 +107,27 @@ module "notifier"{
 }
 
 resource "aws_cloudwatch_event_rule" "every_five_minutes" {
-    name                = "every-five-minutes"
-    description         = "Fires every five minutes"
-    schedule_expression = "rate(5 minutes)"
+  name                = "every-five-minutes"
+  description         = "Fires every five minutes"
+  schedule_expression = "rate(5 minutes)"
+
+  tags = {
+    Service = local.scraper_service_name
+  }
 }
 
 resource "aws_cloudwatch_event_target" "scrap_every_five_minutes" {
-    rule      = aws_cloudwatch_event_rule.every_five_minutes.name
-    target_id = "scraper"
-    arn       = module.scraper.arn
+  rule      = aws_cloudwatch_event_rule.every_five_minutes.name
+  target_id = "scraper"
+  arn       = module.scraper.arn
 }
 
 resource "aws_lambda_permission" "allow_cloudwatch_to_call_scraper" {
-    statement_id  = "AllowExecutionFromCloudWatch"
-    action        = "lambda:InvokeFunction"
-    function_name = module.scraper.function_name
-    principal     = "events.amazonaws.com"
-    source_arn    = aws_cloudwatch_event_rule.every_five_minutes.arn
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = module.scraper.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.every_five_minutes.arn
 }
 
 resource "aws_lambda_event_source_mapping" "notifier" {
