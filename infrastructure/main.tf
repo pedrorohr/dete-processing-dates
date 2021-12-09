@@ -21,7 +21,7 @@ provider "aws" {
   default_tags {
     tags = {
       Environment = var.environment
-      Team        = "Me, Myself & I"
+      Team        = "Me, Myself and I"
       Service     = "dete-processing-dates"
     }
   }
