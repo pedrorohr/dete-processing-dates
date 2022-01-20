@@ -2,19 +2,18 @@ package handler
 
 import (
 	"log"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/gocolly/colly"
+	"github.com/pedrorohr/dete-processing-dates/src/scraper/utils"
 )
 
 const (
 	trustedPartnerDateSelector = "td:contains(\"Trusted Partner\") + td"
 	standardDateSelector       = "td:contains(\"Standard\") + td"
-	deteDateLayout             = "02 January 2006"
 	tableName                  = "DeteProcessingDates"
 	trusted                    = "Trusted Partner"
 	standard                   = "Standard"
@@ -60,7 +59,7 @@ func NewLambdaHandler(deteProcessingDatesUrl string, db *dynamodb.DynamoDB) *lam
 }
 
 func (l lambdaHandler) evaluateProcessingDate(e *colly.HTMLElement, dateType string, dates deteProcessingDates) {
-	extractedDate := extractProcessingDate(e.Text)
+	extractedDate := utils.ExtractProcessingDate(e.Text)
 	log.Printf("Extracted date - %s: %s\n", dateType, extractedDate)
 
 	actualDate, ok := dates[dateType]
@@ -114,15 +113,4 @@ func loadDeteProcessingDates(db *dynamodb.DynamoDB) deteProcessingDates {
 	}
 
 	return deteProcessingDates
-}
-
-func extractProcessingDate(htmlDate string) time.Time {
-	dateWithoutNoBreakingSpaces := strings.ReplaceAll(htmlDate, "\xc2\xa0", " ")
-	trimmedDate := strings.TrimSpace(dateWithoutNoBreakingSpaces)
-	result, err := time.Parse(deteDateLayout, trimmedDate)
-	if err != nil {
-		log.Fatalf("Got error parsing processing date: %s", err)
-	}
-
-	return result
 }
