@@ -21,12 +21,22 @@ func TestFormatDateForNotification(t *testing.T) {
 			getTime(2006, 1, 2),
 		},
 		{
+			"May the Force be with you",
+			"4 May 1977",
+			getTime(1977, 5, 4),
+		},
+		{
 			"Saint Patrick's Day",
 			"17 March 2022",
 			getTime(2022, 3, 17),
 		},
 		{
-			"Date extracted from HTML",
+			"Date extracted from HTML - Day with 1 digit",
+			"\xc2\xa01 April 2023\xc2\xa0",
+			getTime(2023, 4, 1),
+		},
+		{
+			"Date extracted from HTML - Day with 2 digits",
 			"\xc2\xa017 March 2022\xc2\xa0",
 			getTime(2022, 3, 17),
 		},
