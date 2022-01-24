@@ -1,17 +1,12 @@
 package handler
 
 import (
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/pedrorohr/dete-processing-dates/src/scraper/dal"
 )
 
 func Create() Handler {
 	config := NewConfigFromEnv()
+	processingDateDal := dal.NewProcessingDate()
 
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
-	db := dynamodb.New(sess)
-
-	return NewLambdaHandler(config.deteProcessingDatesUrl, db)
+	return NewLambdaHandler(config.deteProcessingDatesUrl, processingDateDal)
 }
