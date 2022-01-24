@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const deteDateLayout = "02 January 2006"
+const deteDateLayout = "_2 January 2006"
 
 func ExtractProcessingDate(htmlDate string) time.Time {
 	dateWithoutNoBreakingSpaces := strings.ReplaceAll(htmlDate, "\xc2\xa0", " ")
